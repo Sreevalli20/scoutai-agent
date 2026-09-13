@@ -47,8 +47,8 @@ class AnakinService:
         headers = self._get_headers()
         
         payload = {
-            "query": query,
-            "numResults": num_results
+            "prompt": query,
+            "limit": num_results
         }
         
         try:

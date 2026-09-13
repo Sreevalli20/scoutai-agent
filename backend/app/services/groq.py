@@ -1,4 +1,5 @@
 import logging
+import json
 from typing import List, Dict, Any, Optional
 from groq import AsyncGroq
 from app.config import get_settings
@@ -172,14 +173,22 @@ Remember: Be honest about missing information. If a field is not specified in th
             if not content:
                 raise ValueError("Empty response from Groq")
             
-            # Parse JSON response
-            import json
+            # Parse JSON response - handle markdown code blocks
+            content = content.strip()
+            if content.startswith("```json"):
+                content = content[7:]
+            elif content.startswith("```"):
+                content = content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
+            
             evaluation_data = json.loads(content)
             
             # Validate and create GroqEvaluation object
             evaluation = GroqEvaluation(**evaluation_data)
             
-            logger.info(f"Evaluation complete for {web_content.name or web_content.source_url} - Match score: {evaluation.match_score}")
+            logger.info(f"Evaluation complete for {web_content.title or web_content.source_url} - Match score: {evaluation.match_score}")
             
             return evaluation
             
@@ -282,10 +291,10 @@ Top opportunity: {evaluations[0].match_score}/100 match score
             "concerns": evaluation.concerns,
             "description": web_content.description,
             "requirements": web_content.requirements,
-            "action_plan": ActionPlan(
-                recommendation=evaluation.recommendation,
-                checklist=evaluation.checklist
-            )
+            "action_plan": {
+                "recommendation": evaluation.recommendation,
+                "checklist": evaluation.checklist
+            }
         }
         
         return opportunity

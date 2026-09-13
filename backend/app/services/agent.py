@@ -125,7 +125,7 @@ class AgentPipeline:
             search_query = self._build_search_query(request)
             
             # Use Anakin search API
-            search_results = await self.anakin.search_web(search_query, num_results=10)
+            search_results = await self.anakin.search_web(search_query, num_results=3)
             
             # Extract URLs from search results
             urls = []
@@ -235,7 +235,7 @@ class AgentPipeline:
         user_filters = request.filters.model_dump()
         
         # Evaluate opportunities concurrently with a limit
-        semaphore = asyncio.Semaphore(2)  # Max 2 concurrent evaluations
+        semaphore = asyncio.Semaphore(1)  # Max 1 concurrent evaluation to avoid rate limits
         
         async def evaluate_with_semaphore(web_content: WebContent) -> Optional[GroqEvaluation]:
             async with semaphore:
@@ -328,7 +328,7 @@ class AgentPipeline:
             Final result dictionary
         """
         # Count matches (opportunities with match score >= 50)
-        matches = sum(1 for opp in opportunities if opp.match_score >= 50)
+        matches = sum(1 for opp in opportunities if (opp.match_score if hasattr(opp, 'match_score') else opp.get('match_score', 0)) >= 50)
         
         summary = ResearchSummary(
             evaluated=len(opportunities),
@@ -336,8 +336,8 @@ class AgentPipeline:
             timestamp=datetime.utcnow()
         )
         
-        # Convert opportunities to dicts
-        opportunity_dicts = [opp.model_dump() for opp in opportunities]
+        # Convert opportunities to dicts (handle both Opportunity objects and dicts)
+        opportunity_dicts = [opp.model_dump() if hasattr(opp, 'model_dump') else opp for opp in opportunities]
         
         return {
             "research_id": research_id,

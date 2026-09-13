@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     groq_api_key: str = ""
     
     # Groq Configuration
-    groq_model: str = "llama3-70b-8192"  # Default model, can be overridden. Note: llama-3.3-70b-versatile was retired Aug 2026
+    groq_model: str = "openai/gpt-oss-20b"  # Default model, can be overridden
     
     # CORS Configuration
     cors_origins: Union[str, List[str]] = ["http://localhost:3000", "http://127.0.0.1:3000"]

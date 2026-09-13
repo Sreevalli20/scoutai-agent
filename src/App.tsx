@@ -282,8 +282,14 @@ export default function App() {
 
     const requestPayload: ResearchRequest = {
       query: query.trim(),
-      profile: userProfile,
-      filters: filters,
+      profile: {
+        ...userProfile,
+        education_status: userProfile.educationStatus,
+      },
+      filters: {
+        ...filters,
+        custom_deadline: filters.customDeadline,
+      },
     };
 
     try {
